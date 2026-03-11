@@ -21,7 +21,7 @@ engine = create_engine(
     pool_pre_ping=True,
     connect_args={
         "ssl": {
-            "ssl_mode": "REQUIRED"
+            "ca": "/etc/ssl/certs/ca-certificates.crt" 
         }
     }
 )
