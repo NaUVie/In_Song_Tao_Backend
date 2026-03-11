@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+import certifi # <--- Thêm ông thần này vào
 
 # 1. Lấy URL từ Render Environment
 db_url = os.getenv("DATABASE_URL")
@@ -11,19 +12,25 @@ if db_url:
     if db_url.startswith("mysql://"):
         db_url = db_url.replace("mysql://", "mysql+pymysql://", 1)
 else:
-    # Link chạy local ở máy sếp
+    # Link chạy local ở máy sếp (nhớ kiểm tra tên DB có khớp không nhé)
     db_url = "mysql+pymysql://root:@localhost:3306/InNhanhTYD"
 
-# 3. Cấu hình Engine với SSL (Bắt buộc cho Aiven)
-# Thêm connect_args để nó chịu kết nối bảo mật SSL
+# 3. Cấu hình connect_args linh hoạt
+connect_args = {}
+
+# Nếu đang kết nối tới Cloud (Aiven), mới cần bật SSL
+if "aivencloud" in db_url:
+    connect_args = {
+        "ssl": {
+            "ca": certifi.where() # Tự động chọn đường dẫn Cert chuẩn cho Win/Linux
+        }
+    }
+
+# 4. Khởi tạo Engine
 engine = create_engine(
     db_url, 
     pool_pre_ping=True,
-    connect_args={
-        "ssl": {
-            "ca": "/etc/ssl/certs/ca-certificates.crt" 
-        }
-    }
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -11,5 +11,5 @@ bcrypt
 python-dotenv
 cloudinary
 google-generativeai
-mysql-connector-python
 email-validator
+certifi
