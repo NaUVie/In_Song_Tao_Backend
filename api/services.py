@@ -4,14 +4,13 @@ import models
 import schemas
 from database import get_db
 from typing import List
-import logic  # Nhớ tạo file logic.py em đưa ở trên nhé sếp
+import logic 
 
 router = APIRouter()
 
 # --- 1. LẤY DANH MỤC (Chỉ hiện sản phẩm chưa xóa) ---
 @router.get("/categories", response_model=List[schemas.Category])
 def get_categories(db: Session = Depends(get_db)):
-    # with_loader_criteria phải nằm trong options() mới đúng cú pháp
     return db.query(models.Category).options(
         joinedload(models.Category.services),
         with_loader_criteria(models.Service, models.Service.is_deleted == False)
@@ -22,7 +21,7 @@ def get_categories(db: Session = Depends(get_db)):
 def get_service(slug: str, db: Session = Depends(get_db)):
     service = db.query(models.Service).filter(
         models.Service.slug == slug,
-        models.Service.is_deleted == False # Chặn khách vào link sản phẩm đã xóa
+        models.Service.is_deleted == False 
     ).options(
         joinedload(models.Service.price_rules),
         joinedload(models.Service.option_groups).joinedload(models.ServiceOptionGroup.options)

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from api import auth, services, orders, admin,upload,categories
+from api import auth, services, orders, admin,upload,categories, search, banners
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="In Nhanh TYD API", version="1.0.0")
@@ -30,3 +30,5 @@ app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin CMS"])
 app.include_router(upload.router, prefix="/api/admin", tags=["Upload"])
 app.include_router(categories.router, prefix="/api/admin", tags=["Categories"])
+app.include_router(search.router, prefix="/api/search", tags=["Search"])
+app.include_router(banners.router, prefix="/api/banners", tags=["Banners"])

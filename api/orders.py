@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload # Thêm joinedload ở đây
+from sqlalchemy.orm import Session, joinedload 
 import models
 import schemas
 from database import get_db
@@ -38,13 +38,9 @@ def create_order(
         db.add(db_item)
         total_order_price += item_price
         
-    # 3. Cập nhật tổng tiền (bao gồm VAT nếu ông muốn tính ở Backend luôn)
-    # Ví dụ tính VAT 8% ở đây luôn cho chắc cú:
     db_order.total_price = total_order_price * 1.08 
     
     db.commit()
-    
-    # Quan trọng: Refresh lại kèm theo các items để trả về JSON cho chuẩn
     db.refresh(db_order)
     return db_order
 
@@ -53,7 +49,6 @@ def get_my_orders(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # ĐÃ SỬA: Thêm .joinedload lồng nhau để lấy thông tin Service của từng Item
     return db.query(models.Order)\
              .options(
                  joinedload(models.Order.items).joinedload(models.OrderItem.service)
@@ -67,15 +62,14 @@ def get_all_orders(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # CHẶN CỬA: Chỉ Admin mới được bốc dữ liệu này
+    
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Ông không có quyền Admin!")
 
     return db.query(models.Order)\
              .options(
-                 # Bốc đơn -> Bốc món -> Bốc tên dịch vụ
+                
                  joinedload(models.Order.items).joinedload(models.OrderItem.service),
-                 # QUAN TRỌNG: Bốc luôn thông tin khách hàng để hiện tên trên bảng
                  joinedload(models.Order.user) 
              )\
              .order_by(models.Order.id.desc())\

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict, Any
-
+from datetime import datetime
 # --- USER ---
 class UserBase(BaseModel):
     email: EmailStr
@@ -54,11 +54,9 @@ class ServiceBase(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     is_deleted: bool = False  
-# SẾP CHÚ Ý THẰNG NÀY: Dùng để nhận dữ liệu từ Admin gửi lên
 class ServiceCreate(ServiceBase):
     option_groups: List[ServiceOptionGroupBase] = []
-    price_rules: List[PriceRuleBase] = [] # <--- PHẢI CÓ DÒNG NÀY THÌ MỚI LƯU ĐƯỢC GIÁ
-
+    price_rules: List[PriceRuleBase] = [] 
 class Service(ServiceBase):
     id: int
     option_groups: List[ServiceOptionGroupBase] = [] 
@@ -70,9 +68,9 @@ class Service(ServiceBase):
 class CategoryBase(BaseModel):
     name: str
     slug: str
-    image_url: Optional[str] = None  # <--- ĐÃ THÊM ĐỂ NHẬN LINK ẢNH TỪ VUE
-
-class CategoryCreate(CategoryBase):  # <--- ĐÃ THÊM CLASS NÀY ĐỂ API CREATE HOẠT ĐỘNG
+    image_url: Optional[str] = None  
+    parent_id: Optional[int] = None
+class CategoryCreate(CategoryBase): 
     pass
 
 class Category(CategoryBase):
@@ -107,6 +105,7 @@ class Order(BaseModel):
     user_id: int
     total_price: float
     status: str
+    created_at: datetime
     user: Optional[User] = None 
     items: List[OrderItem]
     class Config:
@@ -114,3 +113,20 @@ class Order(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: str
+    
+    # --- BANNERS ---
+class BannerBase(BaseModel):
+    title: Optional[str] = None
+    image_url: str
+    link: Optional[str] = None
+    is_active: bool = True
+    sort_order: int = 0
+    position: str = "top"
+
+class BannerCreate(BannerBase):
+    pass
+
+class Banner(BannerBase):
+    id: int
+    class Config:
+        from_attributes = True

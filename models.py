@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, JSON, Text
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, JSON, Text,DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from database import Base
 
 class User(Base):
@@ -20,6 +21,7 @@ class Category(Base):
     slug = Column(String(255), unique=True, index=True)
     services = relationship("Service", back_populates="category")
     image_url = Column(String(1024), nullable=True)
+    parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 class Service(Base):
     __tablename__ = "services"
     id = Column(Integer, primary_key=True, index=True)
@@ -65,10 +67,13 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     total_price = Column(Float)
-    status = Column(String(50), default="pending")  # pending, printing, shipped, completed, cancelled
+    status = Column(String(50), default="pending")
+    
+    # Dòng này bây giờ sẽ chạy ngon lành
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
-
 class OrderItem(Base):
     __tablename__ = "order_items"
     id = Column(Integer, primary_key=True, index=True)
@@ -82,3 +87,12 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
 
     
+class Banner(Base):
+    __tablename__ = "banners"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=True)
+    image_url = Column(String(500), nullable=False)
+    link = Column(String(500), nullable=True)
+    is_active = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=0)
+    position = Column(String(50), default="top")

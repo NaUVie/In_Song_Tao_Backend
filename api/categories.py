@@ -15,7 +15,7 @@ def get_categories(db: Session = Depends(get_db)):
 @router.post("/categories")
 def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     if not current_user.is_admin: 
-        raise HTTPException(status_code=403, detail="Sếp không có quyền!")
+        raise HTTPException(status_code=403, detail=" không có quyền thực thi!")
     
     db_cat = models.Category(
         name=category.name,
