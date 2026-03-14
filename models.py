@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
-
+from sqlalchemy.dialects.mysql import LONGTEXT
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -68,10 +68,10 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     total_price = Column(Float)
     status = Column(String(50), default="pending")
-    
-    # Dòng này bây giờ sẽ chạy ngon lành
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+    recipient_name = Column(String(255), nullable=True)
+    phone_number = Column(String(20), nullable=True)
+    address = Column(Text, nullable=True)
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
 class OrderItem(Base):
@@ -96,3 +96,14 @@ class Banner(Base):
     is_active = Column(Boolean, default=True)
     sort_order = Column(Integer, default=0)
     position = Column(String(50), default="top")
+    
+class News(Base):
+    __tablename__ = "news"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    slug = Column(String(255), unique=True, index=True, nullable=False)
+    summary = Column(Text, nullable=True)
+    content = Column(LONGTEXT, nullable=True) # Dùng cho bài viết cực dài
+    image_url = Column(String(1024), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

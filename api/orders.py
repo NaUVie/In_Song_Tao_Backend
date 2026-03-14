@@ -15,8 +15,16 @@ def create_order(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # 1. Tạo đơn hàng gốc
-    db_order = models.Order(user_id=current_user.id, total_price=0, status="pending")
+    # 1. Tạo đơn hàng gốc kèm thông tin giao hàng
+    # Tôi đã thêm 3 cột: recipient_name, phone_number, address lấy từ schemas.OrderCreate
+    db_order = models.Order(
+        user_id=current_user.id, 
+        total_price=0, 
+        status="pending",
+        recipient_name=order.recipient_name, # Lấy từ Form giỏ hàng gửi lên
+        phone_number=order.phone_number,     # Lấy từ Form giỏ hàng gửi lên
+        address=order.address                # Lấy từ Form giỏ hàng gửi lên
+    )
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
@@ -25,6 +33,7 @@ def create_order(
     
     # 2. Xử lý từng món trong giỏ hàng
     for item in order.items:
+        # Tính toán giá dựa trên logic nội bộ của ông
         item_price = logic.calculate_item_price(db, item)
         
         db_item = models.OrderItem(
@@ -33,11 +42,13 @@ def create_order(
             quantity=item.quantity,
             selected_options=item.selected_options,
             item_price=item_price,
-            artwork_url=item.artwork_url
+            artwork_url=item.artwork_url # Link file thiết kế đã upload
         )
         db.add(db_item)
         total_order_price += item_price
-        
+    
+    # Tính tổng tiền đơn hàng sau khi đã cộng hết các món (đã bao gồm VAT 8%)
+    # $total\_price = total\_item\_price \times 1.08$
     db_order.total_price = total_order_price * 1.08 
     
     db.commit()
@@ -62,13 +73,11 @@ def get_all_orders(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Ông không có quyền Admin!")
 
     return db.query(models.Order)\
              .options(
-                
                  joinedload(models.Order.items).joinedload(models.OrderItem.service),
                  joinedload(models.Order.user) 
              )\

@@ -41,3 +41,34 @@ async def upload_image(
 
     # 4. Trả về đường dẫn tương đối để lưu vào DB
     return {"image_url": f"/static/uploads/{filename}"}
+
+
+
+# ==========================================
+# 2. API MỚI (DÀNH CHO KHÁCH UP FILE IN ẤN) -> DÁN VÀO ĐÂY
+# ==========================================
+@router.post("/upload-artwork")
+async def upload_artwork(
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(get_current_user) # Khách thường đăng nhập là up được
+):
+    # 1. Kiểm tra định dạng (Cho phép PDF, AI, ZIP, Ảnh...)
+    allowed_extensions = ["pdf", "ai", "psd", "zip", "rar", "png", "jpg", "jpeg"]
+    ext = file.filename.split(".")[-1].lower()
+    
+    if ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Định dạng file không được hỗ trợ!")
+
+    # 2. Tạo tên file (thêm prefix artwork_ cho dễ phân biệt)
+    filename = f"artwork_{uuid4().hex}.{ext}"
+    file_path = os.path.join(UPLOAD_DIR, filename)
+
+    # 3. Lưu file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi lưu file: {str(e)}")
+
+    # 4. Trả về đúng key "url" mà VueJS đang chờ
+    return {"url": f"/static/uploads/{filename}"}

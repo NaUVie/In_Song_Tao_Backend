@@ -88,7 +88,9 @@ class OrderItemCreate(BaseModel):
 
 class OrderCreate(BaseModel):
     items: List[OrderItemCreate]
-
+    recipient_name: str
+    phone_number: str
+    address: str
 class OrderItem(BaseModel):
     id: int
     service_id: int
@@ -108,6 +110,9 @@ class Order(BaseModel):
     created_at: datetime
     user: Optional[User] = None 
     items: List[OrderItem]
+    recipient_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    address: Optional[str] = None
     class Config:
         from_attributes = True
 
@@ -128,5 +133,43 @@ class BannerCreate(BannerBase):
 
 class Banner(BannerBase):
     id: int
+    class Config:
+        from_attributes = True
+        
+# --- NEWS ---
+class NewsBase(BaseModel):
+    title: str
+    slug: str
+    summary: Optional[str] = None
+    image_url: Optional[str] = None
+    is_active: bool = True
+
+class NewsCreate(NewsBase):
+    content: str
+
+# Thêm cái này để fix lỗi 422 khi Update (PUT)
+class NewsUpdate(BaseModel):
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    summary: Optional[str] = None
+    content: Optional[str] = None
+    image_url: Optional[str] = None
+    is_active: Optional[bool] = None
+
+    class Config:
+        from_attributes = True
+
+# Dùng cho trang danh sách (Bỏ qua cột content cho nhẹ)
+class NewsShort(NewsBase):
+    id: int
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+# Dùng cho trang chi tiết (Có đầy đủ content)
+class News(NewsBase):
+    id: int
+    content: Optional[str] = None
+    created_at: datetime
     class Config:
         from_attributes = True
